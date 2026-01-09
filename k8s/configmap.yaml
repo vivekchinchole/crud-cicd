@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crud-config
+data:
+  DB_HOST: postgres-service
+  DB_PORT: "5432"
+  DB_NAME: cruddb
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: crud-secret
+type: Opaque
+stringData:
+  db_user: postgres
+  db_password: root
+# Note: In production, use base64 encoded values and proper secret management
+# Example:
+# data:
+#   db_user: cG9zdGdyZXM=
+#   db_password: cG9zdGdyZXM=

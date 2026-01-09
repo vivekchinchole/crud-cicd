@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: crud-postgres
+    environment:
+      POSTGRES_DB: cruddb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root      # ✅ FIXED
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - crud-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    image: crud-app:latest
+    container_name: crud-app
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: cruddb
+      DB_USER: postgres
+      DB_PASSWORD: root
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "5151:5151"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crud-network
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+
+networks:
+  crud-network:
+    driver: bridge

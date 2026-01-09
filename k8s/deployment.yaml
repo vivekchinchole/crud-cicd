@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crud-app-deployment
+  labels:
+    app: crud-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: crud-app
+  template:
+    metadata:
+      labels:
+        app: crud-app
+    spec:
+      containers:
+        - name: crud-app
+          image: vivekchinchole/crud-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5151
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: crud-config
+                  key: DB_HOST
+
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: crud-config
+                  key: DB_PORT
+
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: crud-config
+                  key: DB_NAME
+
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: crud-secret
+                  key: db_user
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: crud-secret
+                  key: db_password
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+#              cpu: "500m"
+#          livenessProbe:
+#            httpGet:
+#              path: /actuator/health
+#              port: 5151
+#            initialDelaySeconds: 30
+#            periodSeconds: 10
+#          readinessProbe:
+#            httpGet:
+#              path: /actuator/health
+#              port: 5151
+#            initialDelaySeconds: 20
+#            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crud-app-service
+spec:
+  selector:
+    app: crud-app
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5151
+      nodePort: 30080
